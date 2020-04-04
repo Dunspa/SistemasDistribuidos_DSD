@@ -7,7 +7,7 @@ public class Ejemplo extends UnicastRemoteObject implements Ejemplo_I {
 
     }
 
-    public void escribir_mensaje(String mensaje) throws RemoteException {
+    public synchronized void escribir_mensaje(String mensaje) throws RemoteException {
         System.out.println("Entra hebra: " + mensaje);
 
         // Buscamos los procesos
