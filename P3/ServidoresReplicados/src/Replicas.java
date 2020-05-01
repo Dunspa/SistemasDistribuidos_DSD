@@ -22,13 +22,17 @@ public class Replicas extends UnicastRemoteObject implements Replicas_I {
     }
 
     public int getTotalDonaciones(int idCliente) throws RemoteException, NotBoundException {
-        int total = subTotal;
+        int total = 0;
 
-        for (int i = 0 ; i < this.numReplicas ; i++) {
-            // Comunicarse con el resto de réplicas
-            if (i != this.idReplica) {
-                replica = (Replicas_I) registry.lookup("Replica" + i);
-                total += replica.getSubTotalDonaciones();
+        // Obtener total sólo si el cliente está registrado y además ha donado
+        if (registrados.containsKey(idCliente) && registrados.get(idCliente) > 0) {
+            total = subTotal;
+            for (int i = 0 ; i < this.numReplicas ; i++) {
+                // Comunicarse con el resto de réplicas
+                if (i != this.idReplica) {
+                    replica = (Replicas_I) registry.lookup("Replica" + i);
+                    total += replica.getSubTotalDonaciones();
+                }
             }
         }
 
@@ -90,7 +94,7 @@ public class Replicas extends UnicastRemoteObject implements Replicas_I {
     }
 
     public synchronized void donar(int cantidad, int idCliente) throws RemoteException {
-        registrados.put(idCliente, 0);
+        registrados.put(idCliente, cantidad);
         subTotal += cantidad;
     }
 }
