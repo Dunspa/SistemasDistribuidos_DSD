@@ -1,0 +1,103 @@
+<html>
+	<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <link rel="stylesheet" type="text/css" href="cliente.css">
+		<title>Cliente</title>
+	</head>
+	<body>
+      <h1>Parámetros de la casa</h1>
+
+      <p>
+         <nobr>
+            <label for="temperatura">Temperatura (°C):</label>
+            <progress id="temperatura" value="0" min="-100" max="100"></progress>
+            <span id="tempval" style="font-weight: bold;"></span>
+         </nobr>
+      </p>
+
+      <p>
+         <nobr>
+            <label for="luminosidad">Luminosidad (0 - 100):</label>
+            <progress id="luminosidad" value="0" max="100"></progress>
+            <span id="lumval" style="font-weight: bold;"></span>
+         </nobr>
+      </p>
+
+      <h1>Control de los actuadores de la casa</h1>
+
+      <form action="javascript:void(0);" onsubmit="javascript:controlAire();">
+         Apagar/Encender Aire Acondicionado
+         <label class="switch">
+            <input type="checkbox" id="aire">
+            <span class="slider round"></span>
+         </label>
+         <input type="submit" value="Aplicar"/>
+      </form>
+      <ul>
+         <li>Apagar el aire acondicionado implica tener más temperatura</li>
+         <li>Encender el aire acondicionado implica tener menos temperatura</li>
+      </ul>
+
+      <form action="javascript:void(0);" onsubmit="javascript:controlPersiana();">
+         Cerrar/Abrir Persiana
+         <label class="switch">
+            <input type="checkbox" id="persiana">
+            <span class="slider round"></span>
+         </label>
+         <input type="submit" value="Aplicar"/>
+      </form>
+      <ul>
+         <li>Cerrar la persiana implica tener menos luminosidad</li>
+         <li>Abrir la persiana implica tener más luminosidad</li>
+      </ul>
+
+      <span id="mensaje_servicio" style="color: red;"></span> <br/>
+   </body>
+   <script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+      var socket = io.connect("http://127.0.0.1:8080");
+      
+      function mostrarMedidas(msg){
+         var temperatura = document.getElementById("temperatura");
+         var luminosidad = document.getElementById("luminosidad");
+         var tempVal = document.getElementById("tempval");
+         var lumVal = document.getElementById("lumval");
+
+         temperatura.value = msg.temperatura;
+         tempVal.innerHTML = msg.temperatura + "°C";
+         luminosidad.value = msg.luminosidad;
+         lumVal.innerHTML = msg.luminosidad;
+      }
+
+      function controlAire() {
+         var aire = document.getElementById("aire");
+         
+         // Aire encendido = más luminosidad
+         if (aire.checked) {
+            socket.emit('aire-encendido');
+         } else { // Aire apagado = más temperatura
+            socket.emit('aire-apagado');
+         }
+      }
+
+      function controlPersiana() {
+         var persiana = document.getElementById("persiana");
+
+         // Persiana cerrada = menos luminosidad
+         if (persiana.checked) {
+            socket.emit('persiana-cerrada');
+         } else { // Persiana abierta = más luminosidad
+            socket.emit('persiana-abierta');
+         }
+      }
+      
+		socket.on('medidas-casa', function(data) {
+			mostrarMedidas(data);
+      });
+      
+		socket.on('disconnect', function(msg) {
+			var span_msg = document.getElementById('mensaje_servicio');
+			span_msg.innerHTML = msg;
+		});
+	</script>
+</html>

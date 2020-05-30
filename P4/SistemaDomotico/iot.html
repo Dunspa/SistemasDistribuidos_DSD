@@ -1,0 +1,80 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Casa IOT</title>
+	</head>
+	<body>
+      <h1>Sensores</h1>
+      <form action="javascript:void(0);" onsubmit="javascript:enviar();">
+         Temperatura (°C): <input type="number" id="temp"/> <br/>
+			Luminosidad (0 - 100): <input type="number" id="lumi" min="0" max="100"/> <br/>
+			<input type="submit" value="Cambiar valores"/>
+      </form>
+      <span id="mensaje_servicio" style="color: red;"></span> <br/>
+      <span id="resulTemp"></span>
+      <span id="resulLumi"></span> <br/>
+
+      <h1>Histórico de cambios en las medidas de los sensores</h1>
+      <div id="historico"></div>
+   </body>
+   <script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+      var socket = io.connect("http://127.0.0.1:8080");
+
+		function enviar() {
+         var t = new Date();
+			var temp = document.getElementById("temp").value;
+			var lumi = document.getElementById("lumi").value;
+         
+         socket.emit('sensores', {temperatura: temp, luminosidad: lumi, tiempo: t});
+         socket.emit('obtener-medidas');
+      }
+      
+      function mostrarMedidas(msg){
+         var temperatura = document.getElementById('resulTemp');
+         var luminosidad = document.getElementById('resulLumi');
+         temperatura.innerHTML = msg.temperatura;
+         luminosidad.innerHTML = msg.luminosidad;
+      }
+      
+      function actualizarListaHistorico(historico){
+			var listContainer = document.getElementById('historico');
+			listContainer.innerHTML = '';
+			var listElement = document.createElement('ul');
+			listContainer.appendChild(listElement);
+			var num = historico.length;
+			for(var i = 0 ; i < num ; i++) {
+	         var listItem = document.createElement('li');
+	         listItem.innerHTML = JSON.stringify(historico[i]);
+	         listElement.appendChild(listItem);
+	      }
+      }
+      
+      // Apagar el aire = +20 grados
+      socket.on('apaga-aire', function(data) {
+         
+
+         // Enviar medidas actualizadas
+         enviar();
+      });
+
+      // Encender el aire = -20 grados
+
+      // Cerrar la persiana = -20 luminosidad
+
+      // Abrir la persiana = +20 luminosidad
+      
+		socket.on('medidas-casa', function(data) {
+			mostrarMedidas(data);
+      });
+
+      socket.on('obtener-medidas', function(data) {
+			actualizarListaHistorico(data);
+		});
+      
+		socket.on('disconnect', function() {
+			var span_msg = document.getElementById('mensaje_servicio');
+			span_msg.innerHTML = msg;
+		});
+	</script>
+</html>
