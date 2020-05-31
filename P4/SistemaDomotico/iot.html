@@ -14,6 +14,10 @@
       <span id="resulTemp"></span>
       <span id="resulLumi"></span> <br/>
 
+      Estado persiana: <span id="persiana" style="color: red">CERRADA</span></br>
+      Estado aire acondicionado: <span id="aire" style="color: red">APAGADO</span></br>
+      <span id="alerta"></span>
+
       <h1>Histórico de cambios en las medidas de los sensores</h1>
       <div id="historico"></div>
    </body>
@@ -24,7 +28,8 @@
 		function enviar() {
          var t = new Date();
 			var temp = document.getElementById("temp").value;
-			var lumi = document.getElementById("lumi").value;
+         var lumi = document.getElementById("lumi").value;
+         console.log("ENVIANDO " + temp);
          
          socket.emit('sensores', {temperatura: temp, luminosidad: lumi, tiempo: t});
          socket.emit('obtener-medidas');
@@ -40,7 +45,9 @@
       function actualizarListaHistorico(historico){
 			var listContainer = document.getElementById('historico');
 			listContainer.innerHTML = '';
-			var listElement = document.createElement('ul');
+         var listElement = document.createElement('ul');
+         listElement.style.overflowY = "scroll";
+         listElement.style.height = "50%";
 			listContainer.appendChild(listElement);
 			var num = historico.length;
 			for(var i = 0 ; i < num ; i++) {
@@ -49,20 +56,70 @@
 	         listElement.appendChild(listItem);
 	      }
       }
+
+      socket.on('alerta', function(alerta, data){
+         var al = document.getElementById("alerta");
+         al.innerHTML = alerta;
+         if (alerta[0] == 'A') {
+            al.style.color = '#FF0000';
+         } else {
+            al.style.color = '#00FF00';
+         }
+
+         mostrarMedidas(data);
+      });
       
       // Apagar el aire = +20 grados
-      socket.on('apaga-aire', function(data) {
-         
+      socket.on('apaga-aire', function() {
+         var a = document.getElementById("aire");
+         a.innerHTML = "APAGADO";
+         a.style.color = '#FF0000';
+
+         var temperatura = document.getElementById("temp").value;
+         document.getElementById("temp").value = parseInt(temperatura) + 20;
 
          // Enviar medidas actualizadas
          enviar();
       });
 
       // Encender el aire = -20 grados
+      socket.on('enciende-aire', function() {
+         var a = document.getElementById("aire");
+         a.innerHTML = "ENCENDIDO";
+         a.style.color = '#00FF00';
+
+         var temperatura = document.getElementById("temp").value;
+         document.getElementById("temp").value = parseInt(temperatura) - 20;
+
+         // Enviar medidas actualizadas
+         enviar();
+      });
 
       // Cerrar la persiana = -20 luminosidad
+      socket.on('cierra-persiana', function() {
+         var p = document.getElementById("persiana");
+         p.innerHTML = "CERRADA";
+         p.style.color = '#FF0000';
+
+         var luminosidad = document.getElementById("lumi").value;
+         document.getElementById("lumi").value = parseInt(luminosidad) - 20;
+
+         // Enviar medidas actualizadas
+         enviar();
+      });
 
       // Abrir la persiana = +20 luminosidad
+      socket.on('abre-persiana', function() {
+         var p = document.getElementById("persiana");
+         p.innerHTML = "ABIERTA";
+         p.style.color = '#00FF00';
+
+         var luminosidad = document.getElementById("lumi").value;
+         document.getElementById("lumi").value = parseInt(luminosidad) + 20;
+
+         // Enviar medidas actualizadas
+         enviar();
+      });
       
 		socket.on('medidas-casa', function(data) {
 			mostrarMedidas(data);

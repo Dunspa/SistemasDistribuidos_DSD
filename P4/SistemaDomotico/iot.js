@@ -113,6 +113,26 @@ MongoClient.connect("mongodb://localhost:27017/", function(err, db) {
             // Se envía a los clientes las nuevas medidas que nos dan los sensores
             io.sockets.emit('medidas-casa', data);
          });
+
+         // Apagar el aire = +20 grados
+         client.on('apaga-aire-cliente', function() {
+            io.sockets.emit('apaga-aire');
+         });
+
+         // Encender el aire = -20 grados
+         client.on('enciende-aire-cliente', function() {
+            io.sockets.emit('enciende-aire');
+         });
+
+         // Cerrar la persiana = -20 luminosidad
+         client.on('cierra-persiana-cliente', function() {
+            io.sockets.emit('cierra-persiana');
+         });
+
+         // Abrir la persiana = +20 luminosidad
+         client.on('abre-persiana-cliente', function() {
+            io.sockets.emit('abre-persiana');
+         });
          
 			client.on('obtener-medidas', function (data) {
 				collection.find().toArray(function(err, results){

@@ -7,6 +7,8 @@
 	<body>
       <h1>Parámetros de la casa</h1>
 
+      <span id="alerta"></span>
+
       <p>
          <nobr>
             <label for="temperatura">Temperatura (°C):</label>
@@ -25,6 +27,7 @@
 
       <h1>Control de los actuadores de la casa</h1>
 
+      Estado aire acondicionado: <span id="estadoaire" style="color: red">APAGADO</span></br>
       <form action="javascript:void(0);" onsubmit="javascript:controlAire();">
          Apagar/Encender Aire Acondicionado
          <label class="switch">
@@ -38,6 +41,7 @@
          <li>Encender el aire acondicionado implica tener menos temperatura</li>
       </ul>
 
+      Estado persiana: <span id="estadopersiana" style="color: red">CERRADA</span></br>
       <form action="javascript:void(0);" onsubmit="javascript:controlPersiana();">
          Cerrar/Abrir Persiana
          <label class="switch">
@@ -71,25 +75,49 @@
 
       function controlAire() {
          var aire = document.getElementById("aire");
-         
-         // Aire encendido = más luminosidad
+
+         // Aire encendido = menos temperatura
          if (aire.checked) {
-            socket.emit('aire-encendido');
+            socket.emit('enciende-aire-cliente');
+            var a = document.getElementById("estadoaire");
+            a.innerHTML = "ENCENDIDO";
+            a.style.color = '#00FF00';
          } else { // Aire apagado = más temperatura
-            socket.emit('aire-apagado');
+            socket.emit('apaga-aire-cliente');
+            var a = document.getElementById("estadoaire");
+            a.innerHTML = "APAGADO";
+            a.style.color = '#FF0000';
          }
       }
 
       function controlPersiana() {
          var persiana = document.getElementById("persiana");
 
-         // Persiana cerrada = menos luminosidad
+         // Persiana abierta = más luminosidad
          if (persiana.checked) {
-            socket.emit('persiana-cerrada');
-         } else { // Persiana abierta = más luminosidad
-            socket.emit('persiana-abierta');
+            socket.emit('abre-persiana-cliente');
+            var p = document.getElementById("estadopersiana");
+            p.innerHTML = "ABIERTA";
+            p.style.color = '#00FF00';
+         } else { // Persiana cerrada = menos luminosidad
+            socket.emit('cierra-persiana-cliente');
+            var p = document.getElementById("estadopersiana");
+            p.innerHTML = "CERRADA";
+            p.style.color = '#FF0000';
          }
       }
+
+      socket.on('alerta', function(alerta, data){
+         var al = document.getElementById("alerta");
+         al.innerHTML = alerta;
+         if (alerta[0] == 'A') {
+            al.style.color = '#FF0000';
+         } else {
+            al.style.color = '#00FF00';
+         }
+
+         mostrarMedidas(data);
+      });
       
 		socket.on('medidas-casa', function(data) {
 			mostrarMedidas(data);
