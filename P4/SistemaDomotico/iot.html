@@ -7,7 +7,7 @@
       <h1>Sensores</h1>
       <form action="javascript:void(0);" onsubmit="javascript:enviar();">
          Temperatura (°C): <input type="number" id="temp"/> <br/>
-			Luminosidad (0 - 100): <input type="number" id="lumi" min="0" max="100"/> <br/>
+			Luminosidad (0 - 100): <input type="number" id="lumi"/> <br/>
 			<input type="submit" value="Cambiar valores"/>
       </form>
       <span id="mensaje_servicio" style="color: red;"></span> <br/>
@@ -18,7 +18,12 @@
       Estado aire acondicionado: <span id="aire" style="color: red">APAGADO</span></br>
       <span id="alerta"></span>
 
-      <h1>Histórico de cambios en las medidas de los sensores</h1>
+      <nobr>
+         <h1>Histórico de cambios en las medidas de los sensores</h1>
+         <form action="javascript:void(0);" onsubmit="javascript:borrarHistorico();">
+            <input type="submit" value="Borrar histórico"/>
+         </form>
+      </nobr>
       <div id="historico"></div>
    </body>
    <script src="/socket.io/socket.io.js"></script>
@@ -33,6 +38,10 @@
          
          socket.emit('sensores', {temperatura: temp, luminosidad: lumi, tiempo: t});
          socket.emit('obtener-medidas');
+      }
+
+      function borrarHistorico() {
+         socket.emit('borrar-historico');
       }
       
       function mostrarMedidas(msg){
@@ -52,7 +61,9 @@
 			var num = historico.length;
 			for(var i = 0 ; i < num ; i++) {
 	         var listItem = document.createElement('li');
-	         listItem.innerHTML = JSON.stringify(historico[i]);
+            listItem.innerHTML = "<strong>Temperatura: </strong>" + historico[i].temperatura 
+                              + " <strong>Luminosidad: </strong>" + historico[i]. luminosidad 
+                              + " <strong>Tiempo: </strong>" + historico[i].tiempo;
 	         listElement.appendChild(listItem);
 	      }
       }
@@ -76,7 +87,7 @@
          a.style.color = '#FF0000';
 
          var temperatura = document.getElementById("temp").value;
-         document.getElementById("temp").value = parseInt(temperatura) + 20;
+         document.getElementById("temp").value = parseInt(temperatura) + Math.round((Math.random() * 20) * 100) / 100;
 
          // Enviar medidas actualizadas
          enviar();
@@ -89,7 +100,7 @@
          a.style.color = '#00FF00';
 
          var temperatura = document.getElementById("temp").value;
-         document.getElementById("temp").value = parseInt(temperatura) - 20;
+         document.getElementById("temp").value = parseInt(temperatura) - Math.round((Math.random() * 20) * 100) / 100;
 
          // Enviar medidas actualizadas
          enviar();
@@ -102,7 +113,7 @@
          p.style.color = '#FF0000';
 
          var luminosidad = document.getElementById("lumi").value;
-         document.getElementById("lumi").value = parseInt(luminosidad) - 20;
+         document.getElementById("lumi").value = parseInt(luminosidad) - Math.round((Math.random() * 20) * 100) / 100;
 
          // Enviar medidas actualizadas
          enviar();
@@ -115,7 +126,7 @@
          p.style.color = '#00FF00';
 
          var luminosidad = document.getElementById("lumi").value;
-         document.getElementById("lumi").value = parseInt(luminosidad) + 20;
+         document.getElementById("lumi").value = parseInt(luminosidad) + Math.round((Math.random() * 20) * 100) / 100;
 
          // Enviar medidas actualizadas
          enviar();

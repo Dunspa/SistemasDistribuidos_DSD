@@ -102,7 +102,7 @@ MongoClient.connect("mongodb://localhost:27017/", function(err, db) {
             } else if (data.luminosidad > 100) {
                alerta = "ALERTA: Luminosidad demasiado alta. Cerrando persiana.";
                io.sockets.emit('cierra-persiana');
-            } else if (data.temperatura < 0) {
+            } else if (data.luminosidad < 0) {
                alerta = "ALERTA: Luminosidad demasiado baja. Abriendo persiana.";
                io.sockets.emit('abre-persiana');
             }
@@ -138,6 +138,11 @@ MongoClient.connect("mongodb://localhost:27017/", function(err, db) {
 				collection.find().toArray(function(err, results){
 					client.emit('obtener-medidas', results);
 				});
+         });
+
+         client.on('borrar-historico', function () {
+            collection.drop();
+            client.emit('obtener-medidas', results);
          });
          
          client.on('disconnect', function() {
